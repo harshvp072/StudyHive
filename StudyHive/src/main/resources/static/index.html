@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Study Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <h1>📚 Study Tracker</h1>
+
+    <div class="timer-section">
+        <h2>Study Timer</h2>
+        <div id="timerDisplay">00:00:00</div>
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop & Save</button>
+    </div>
+
+    <div class="form-section">
+        <h2>Manual Session Entry</h2>
+        <form id="manualForm">
+            <label>Course:
+                <input type="text" id="course" required>
+            </label>
+            <label>Notes:
+                <input type="text" id="notes">
+            </label>
+            <label>Start Time:
+                <input type="datetime-local" id="startTime" required>
+            </label>
+            <label>End Time:
+                <input type="datetime-local" id="endTime" required>
+            </label>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div class="log-section">
+        <h2>Monthly Sessions</h2>
+        <input type="month" id="monthSelector" value="2025-03">
+        <button onclick="loadSessions()">Load</button>
+        <ul id="sessionList"></ul>
+    </div>
+</div>
+
+<script src="timer.js"></script>
+</body>
+</html>

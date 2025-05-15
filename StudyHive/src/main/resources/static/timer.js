@@ -1,39 +1,78 @@
-<button onclick="startTimer()">Start</button>
-<button onclick="stopTimer()">Stop</button>
-<p id="timerDisplay">00:00:00</p>
-
-<script>
 let startTime, interval;
 
+function pad(n) {
+    return n < 10 ? '0' + n : n;
+}
+
 function startTimer() {
-    startTime = Date.now();
+    startTime = new Date();
     interval = setInterval(() => {
-        let elapsed = Date.now() - startTime;
-        let hours = Math.floor(elapsed / 3600000);
-        let minutes = Math.floor((elapsed % 3600000) / 60000);
-        let seconds = Math.floor((elapsed % 60000) / 1000);
-        document.getElementById("timerDisplay").innerText =
-            `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        let elapsed = new Date() - startTime;
+        let h = Math.floor(elapsed / 3600000);
+        let m = Math.floor((elapsed % 3600000) / 60000);
+        let s = Math.floor((elapsed % 60000) / 1000);
+        document.getElementById("timerDisplay").innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
     }, 1000);
 }
 
 function stopTimer() {
     clearInterval(interval);
     let endTime = new Date();
-    let start = new Date(startTime);
+    let course = prompt("Enter course name:");
+    let notes = prompt("Any notes?");
 
-    fetch('/api/sessions', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+    fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            startTime: start.toISOString(),
+            startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            course: "DSA"
+            course,
+            notes
         })
-    }).then(res => res.json()).then(data => console.log(data));
+    }).then(res => res.json()).then(data => {
+        alert("Session saved!");
+        document.getElementById("timerDisplay").innerText = "00:00:00";
+    });
 }
 
-function pad(num) {
-    return num < 10 ? '0' + num : num;
+// Manual session form
+document.getElementById("manualForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const data = {
+        startTime: new Date(document.getElementById("startTime").value).toISOString(),
+        endTime: new Date(document.getElementById("endTime").value).toISOString(),
+        course: document.getElementById("course").value,
+        notes: document.getElementById("notes").value,
+    };
+
+    fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    }).then(res => res.json()).then(() => {
+        alert("Manual session saved!");
+        document.getElementById("manualForm").reset();
+    });
+});
+
+// Load sessions for selected month
+function loadSessions() {
+    const monthInput = document.getElementById("monthSelector").value;
+    const [year, month] = monthInput.split('-');
+
+    fetch(`/api/sessions/month?year=${year}&month=${month}`)
+        .then(res => res.json())
+        .then(sessions => {
+            const list = document.getElementById("sessionList");
+            list.innerHTML = "";
+            sessions.forEach(s => {
+                const li = document.createElement("li");
+                const start = new Date(s.startTime).toLocaleString();
+                const end = new Date(s.endTime).toLocaleString();
+                li.textContent = `[${s.course}] ${start} → ${end} (${s.notes || "no notes"})`;
+                list.appendChild(li);
+            });
+        });
 }
-</script>
