@@ -1,25 +1,43 @@
-let startTime, interval;
+let startTime, interval, selectedCourse = null;
+let isRunning = false;
 
+// Helper: pad single digits
 function pad(n) {
     return n < 10 ? '0' + n : n;
 }
 
+// Start the timer
 function startTimer() {
-    startTime = new Date();
-    interval = setInterval(() => {
-        let elapsed = new Date() - startTime;
-        let h = Math.floor(elapsed / 3600000);
-        let m = Math.floor((elapsed % 3600000) / 60000);
-        let s = Math.floor((elapsed % 60000) / 1000);
-        document.getElementById("timerDisplay").innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
-    }, 1000);
+    if (!selectedCourse) {
+        alert("Please select a subject to start the timer.");
+        return;
+    }
+
+    if (!isRunning) {
+        startTime = new Date();
+        isRunning = true;
+
+        interval = setInterval(() => {
+            let elapsed = new Date() - startTime;
+            let h = Math.floor(elapsed / 3600000);
+            let m = Math.floor((elapsed % 3600000) / 60000);
+            document.getElementById("liveTimer").innerText = `${pad(h)}:${pad(m)}`;
+        }, 1000);
+
+        // Change icon to pause
+        document.getElementById("playPauseIcon").className = "fas fa-pause";
+    } else {
+        stopTimer();
+    }
 }
 
+// Stop the timer and save session
 function stopTimer() {
     clearInterval(interval);
-    let endTime = new Date();
-    let course = prompt("Enter course name:");
-    let notes = prompt("Any notes?");
+    isRunning = false;
+
+    const endTime = new Date();
+    const notes = prompt("Any notes for this session?") || "";
 
     fetch("/api/sessions", {
         method: "POST",
@@ -27,13 +45,20 @@ function stopTimer() {
         body: JSON.stringify({
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
-            course,
+            course: selectedCourse,
             notes
         })
-    }).then(res => res.json()).then(data => {
+    }).then(res => res.json()).then(() => {
         alert("Session saved!");
-        document.getElementById("timerDisplay").innerText = "00:00:00";
+        document.getElementById("liveTimer").innerText = "00:00";
+        document.getElementById("playPauseIcon").className = "fas fa-play";
     });
+}
+
+// Subject selection from dropdown
+function selectSubject(subject) {
+    selectedCourse = subject;
+    document.getElementById("selectedSubject").innerText = subject;
 }
 
 // Manual session form

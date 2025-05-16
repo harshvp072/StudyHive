@@ -1,28 +1,37 @@
 package com.StudyHive.controller;
 
+import com.StudyHive.dto.SessionRequest;
 import com.StudyHive.entity.StudySession;
-import com.StudyHive.service.StudySessionService;
+import com.StudyHive.entity.User;
+import com.StudyHive.repository.StudySessionRepository;
+import com.StudyHive.repository.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/sessions")
+@RequiredArgsConstructor
 public class StudySessionController {
 
-    private final StudySessionService service;
-
-    public StudySessionController(StudySessionService service) {
-        this.service = service;
-    }
+    private final StudySessionRepository sessionRepo;
+    private final UserRepository userRepo;
 
     @PostMapping
-    public StudySession createSession(@RequestBody StudySession session) {
-        return service.saveSession(session);
-    }
+    public StudySession createSession(@RequestBody SessionRequest req) {
+        User user = userRepo.findByUsername(req.getUsername());
+        if (user == null) throw new RuntimeException("User not found");
 
-    @GetMapping("/month")
-    public List<StudySession> getMonthlySessions(@RequestParam int year, @RequestParam int month) {
-        return service.getSessionsForMonth(year, month);
+        StudySession session = new StudySession();
+        session.setUser(user);
+        session.setCourse(req.getCourse());
+        session.setNotes(req.getNotes());
+        session.setStartTime(req.getStartTime());
+        session.setEndTime(req.getEndTime());
+
+        return sessionRepo.save(session);
     }
 }

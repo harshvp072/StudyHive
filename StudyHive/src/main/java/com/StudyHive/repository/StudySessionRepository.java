@@ -9,7 +9,4 @@ import java.util.List;
 
 @Repository
 public interface StudySessionRepository extends JpaRepository<StudySession, Long> {
-
-    List<StudySession> findByStartTimeBetween(LocalDateTime start, LocalDateTime end);
-
 }
